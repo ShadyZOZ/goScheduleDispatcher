@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"fmt"
 	"time"
+	"github.com/garyburd/redigo/redis"
 )
 
 type Message struct {
@@ -31,9 +32,9 @@ func publish(ctx *gin.Context) interface{} {
 		key := getKey(message.Action, message.UUID)
 		hmKey := getHMKey(message.Action, message.UUID)
 		if !message.Override {
-			if res, err := conn.Do("GET", key); err != nil {
+			if res, err := redis.Bool(conn.Do("EXISTS", key)); err != nil {
 				return err.Error()
-			} else if res != nil {
+			} else if res {
 				return "can't override current schedule"
 			}
 		}
