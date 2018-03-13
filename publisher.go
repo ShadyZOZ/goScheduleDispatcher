@@ -12,7 +12,7 @@ type Message struct {
 	UUID        string `json:"uuid" binding:"required"`
 	CallbackUrl string `json:"callbackUrl" binding:"required"`
 	Data        string `json:"data" binding:"required"`
-	Timestamp   int64 `json:"timestamp"`
+	Timestamp   int64  `json:"timestamp"`
 	Override    bool   `json:"override"`
 }
 

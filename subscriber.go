@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"net/http"
+	"encoding/json"
+	"bytes"
 )
 
 func subscribe() {
@@ -29,13 +31,27 @@ func subscribe() {
 				fmt.Println(err.Error())
 				continue
 			}
-			if _, err := http.Post(callbackUrl, "application/json", strings.NewReader(data)); err != nil {
+			if callbackUrl == "" {
+				fmt.Println("no callbackUrl")
+				continue
+			}
+			action := strings.Split(key, ":")[1]
+			postData := map[string]string{"action": action, "data": data}
+			jsonData, _ := json.Marshal(postData)
+			if _, err := http.Post(callbackUrl, "application/json", bytes.NewBuffer(jsonData)); err != nil {
 				fmt.Println(err.Error())
 				continue
 			}
+			//resp, err := http.Post(callbackUrl + "?token=oTGmBUNIspCPcXJZxQih1ig1", "application/json", strings.NewReader(data))
+			//body, _ := ioutil.ReadAll(resp.Body)
+			//fmt.Println(string(body))
+			//if err != nil {
+			//	fmt.Println(err.Error())
+			//	continue
+			//}
 			conn.Do("DEL", key)
 		case error:
-			fmt.Println(v)
+			fmt.Println("error:", v)
 		}
 	}
 }
