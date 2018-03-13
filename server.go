@@ -16,5 +16,5 @@ func runServer() {
 			ctx.AbortWithStatusJSON(400, gin.H{"error": err})
 		}
 	})
-	r.Run()
+	r.Run(":5001")
 }
