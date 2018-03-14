@@ -1,19 +1,19 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"fmt"
-	"time"
 	"github.com/garyburd/redigo/redis"
+	"github.com/gin-gonic/gin"
+	"time"
 )
 
 type Message struct {
-	Action      string `json:"action" binding:"required"`
-	UUID        string `json:"uuid" binding:"required"`
-	CallbackUrl string `json:"callbackUrl" binding:"required"`
-	Data        string `json:"data" binding:"required"`
-	Timestamp   int64  `json:"timestamp"`
-	Override    bool   `json:"override"`
+	Action      string    `json:"action" binding:"required"`
+	UUID        string    `json:"uuid" binding:"required"`
+	CallbackUrl string    `json:"callbackUrl" binding:"required"`
+	Data        string    `json:"data" binding:"required"`
+	SendTime    time.Time `json:"sendTime"`
+	Override    bool      `json:"override"`
 }
 
 func getKey(action string, uuid string) string {
@@ -39,10 +39,11 @@ func publish(ctx *gin.Context) interface{} {
 			}
 		}
 		var ttl int64 = 1
-		if message.Timestamp != 0 {
+		sendTime := message.SendTime.Unix()
+		if sendTime != 0 {
 			t := time.Now().Unix()
-			if message.Timestamp > t {
-				ttl = message.Timestamp - t
+			if sendTime > t {
+				ttl = sendTime - t
 			}
 		}
 		if err := conn.Send("SET", key, "1", "EX", ttl); err != nil {

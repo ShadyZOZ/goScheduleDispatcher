@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/garyburd/redigo/redis"
-	"fmt"
-	"strings"
-	"net/http"
-	"encoding/json"
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/garyburd/redigo/redis"
+	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
 func subscribe() {
@@ -38,17 +39,21 @@ func subscribe() {
 			action := strings.Split(key, ":")[1]
 			postData := map[string]string{"action": action, "data": data}
 			jsonData, _ := json.Marshal(postData)
-			if _, err := http.Post(callbackUrl, "application/json", bytes.NewBuffer(jsonData)); err != nil {
-				fmt.Println(err.Error())
-				continue
-			}
-			//resp, err := http.Post(callbackUrl + "?token=oTGmBUNIspCPcXJZxQih1ig1", "application/json", strings.NewReader(data))
-			//body, _ := ioutil.ReadAll(resp.Body)
-			//fmt.Println(string(body))
-			//if err != nil {
+			//if _, err := http.Post(callbackUrl, "application/json", bytes.NewBuffer(jsonData)); err != nil {
 			//	fmt.Println(err.Error())
 			//	continue
 			//}
+			resp, err := http.Post(callbackUrl, "application/json", bytes.NewBuffer(jsonData))
+			if err != nil {
+				fmt.Println(err.Error())
+				continue
+			}
+			body, _ := ioutil.ReadAll(resp.Body)
+			respData := Response2Dict(body)
+			if respData["ok"] == false {
+				fmt.Println(respData["msg"])
+				continue
+			}
 			conn.Do("DEL", key)
 		case error:
 			fmt.Println("error:", v)

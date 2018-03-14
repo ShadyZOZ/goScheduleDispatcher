@@ -1,13 +1,16 @@
 package main
 
 import (
+	_ "net/http/pprof"
+	"log"
+	"net/http"
 	"fmt"
-	"sync"
 	"github.com/garyburd/redigo/redis"
+	"sync"
 )
 
 var (
-	pool *redis.Pool
+	pool      *redis.Pool
 	redisAddr = "localhost:6379"
 )
 
@@ -22,5 +25,8 @@ func main() {
 	wg.Add(1)
 	go subscribe()
 	go runServer()
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	wg.Wait()
 }
